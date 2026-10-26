@@ -1,0 +1,25 @@
+# PostgreSQL demo service
+services:
+  postgres:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+      args:
+        OMS_POSTGRES_DB: ${OMS_POSTGRES_DB}
+    container_name: pg_demo
+    environment:
+      POSTGRES_USER: ${OMS_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${OMS_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${OMS_POSTGRES_DB}
+    ports:
+      - "${OMS_POSTGRES_PORT}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

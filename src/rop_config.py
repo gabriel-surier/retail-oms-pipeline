@@ -23,10 +23,17 @@ class Settings(BaseSettings):
     project_root: Path = Path(__file__).resolve().parent.parent
     model_config = SettingsConfigDict(env_file=project_root / ".env")
 
-    # --- Environment path config ---
+    # --- oms config ---
 
     oms_load_mod: str
     oms_delta_days: int
     oms_init_date: date
     oms_replay_speed: int
     oms_seed: int
+
+    # --- PostgreSQL config ---
+
+    oms_postgres_user: str
+    oms_postgres_password: str
+    oms_postgres_db: str
+    oms_postgres_port: int
