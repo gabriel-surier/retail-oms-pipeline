@@ -1,0 +1,64 @@
+name: ci_retail_footfall_pipeline
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+# ============================================
+# Job 1 : Format- black --check --verbose
+# ============================================
+    black:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v7
+        - name: Set up Python 3.12
+          uses: actions/setup-python@v7
+          with:
+            python-version: "3.12"
+            cache: "pip"
+        - run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+        - run: |
+            black --check --verbose .
+# ============================================
+# Job 2 : Lint - pylint
+# ============================================
+    pylint:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v7
+        - name: Set up Python 3.12
+          uses: actions/setup-python@v7
+          with:
+            python-version: "3.12"
+            cache: "pip"
+        - run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+        - run: |
+            pylint .
+
+# ============================================
+# Job 3 :  Static typo — mypy
+# ============================================
+    mypy:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v7
+        - name: Set up Python 3.12
+          uses: actions/setup-python@v7
+          with:
+            python-version: "3.12"
+            cache: "pip"
+        - run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+        - run: |
+            mypy --strict .
+
+# ============================================
+# Job 4 :  Unit testing
+# ============================================

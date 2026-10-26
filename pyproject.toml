@@ -1,0 +1,44 @@
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+extend-exclude = '''
+(
+  venv/
+  | \.venv/
+  | sandbox/
+)
+'''
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+strict = true
+disallow_any_explicit = false
+warn_unused_ignores = true
+warn_redundant_casts = true
+exclude = ["venv/", "\\.venv/", "sandbox/"]
+
+[[tool.mypy.overrides]]
+module = ["airflow.*"]
+ignore_missing_imports = true
+
+[tool.pylint.MAIN]
+ignore = ["venv", "sandbox"]
+ignore-patterns = ["^\\.venv$"]
+
+[tool.pylint.typecheck]
+ignored-modules = ["airflow.providers"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "retail-oms-pipeline"
+version = "0.1.0"
+description = "End-to-end retail OMS pipeline"
+requires-python = ">=3.12"
+
+#setup custom for current repository
+
+[tool.setuptools]
+packages = ["src"]
