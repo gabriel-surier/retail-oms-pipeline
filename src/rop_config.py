@@ -1,6 +1,6 @@
 """
 @File    :   rop_config.py
-@Time    :   2026-08-26
+@Time    :   2026-10-26
 @Author  :   Gabriel SURIER
 @Purpose :   Provides application settings
 """
