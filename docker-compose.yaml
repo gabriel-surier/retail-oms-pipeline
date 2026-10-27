@@ -1,12 +1,13 @@
 # PostgreSQL demo service
 services:
   postgres:
+    image: oms-postgres:1.0
     build:
       context: ./database
       dockerfile: Dockerfile
       args:
         OMS_POSTGRES_DB: ${OMS_POSTGRES_DB}
-    container_name: pg_demo
+    container_name: demo_dev_database
     environment:
       POSTGRES_USER: ${OMS_POSTGRES_USER}
       POSTGRES_PASSWORD: ${OMS_POSTGRES_PASSWORD}
