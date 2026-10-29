@@ -6,14 +6,14 @@ services:
       context: ./database
       dockerfile: Dockerfile
       args:
-        OMS_POSTGRES_DB: ${OMS_POSTGRES_DB}
+        ROP_POSTGRES_DB: ${ROP_POSTGRES_DB}
     container_name: demo_dev_database
     environment:
-      POSTGRES_USER: ${OMS_POSTGRES_USER}
-      POSTGRES_PASSWORD: ${OMS_POSTGRES_PASSWORD}
-      POSTGRES_DB: ${OMS_POSTGRES_DB}
+      POSTGRES_USER: ${ROP_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${ROP_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${ROP_POSTGRES_DB}
     ports:
-      - "${OMS_POSTGRES_PORT}:5432"
+      - "${ROP_POSTGRES_PORT}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

@@ -25,15 +25,15 @@ class Settings(BaseSettings):
 
     # --- oms config ---
 
-    oms_load_mod: str
-    oms_delta_days: int
-    oms_init_date: date
-    oms_replay_speed: int
-    oms_seed: int
+    rop_load_mod: str
+    rop_delta_days: int
+    rop_init_date: date
+    rop_replay_speed: int
+    rop_seed: int
 
     # --- PostgreSQL config ---
 
-    oms_postgres_user: str
-    oms_postgres_password: str
-    oms_postgres_db: str
-    oms_postgres_port: int
+    rop_postgres_user: str
+    rop_postgres_password: str
+    rop_postgres_db: str
+    rop_postgres_port: int
