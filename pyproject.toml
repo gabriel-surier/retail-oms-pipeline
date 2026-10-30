@@ -28,6 +28,13 @@ ignore-patterns = ["^\\.venv$"]
 [tool.pylint.typecheck]
 ignored-modules = ["airflow.providers"]
 
+# let some similarities for pipelines
+[tool.pylint.similarities]
+min-similarity-lines = 20
+ignore-comments = true
+ignore-docstrings = true
+ignore-imports = true
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"

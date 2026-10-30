@@ -1,6 +1,6 @@
 /****************************************************
 * Script name          : Automatic script
-* Script date          : 27-10-2026 16:40:57
+* Script date          : 30-10-2026 08:01:05
 * Database type        : PostgreSQL
 * Table name           : customer
 * Request number       : OLTP1
@@ -27,7 +27,7 @@ COMMENT ON COLUMN oms.customer.updated_ts IS 'Last modification date in the sour
 
 /****************************************************
 * Script name          : Automatic script
-* Script date          : 27-10-2026 16:40:58
+* Script date          : 30-10-2026 08:01:06
 * Database type        : PostgreSQL
 * Table name           : product
 * Request number       : OLTP1
@@ -37,7 +37,7 @@ DROP TABLE IF EXISTS oms.product;
 Create table oms.product
 (
 product_id integer not null,
-product_cd varchar(20),
+product_cd varchar(20) not null,
 category_cd varchar(50),
 brand_name varchar(50),
 product_name varchar(120),
@@ -60,108 +60,26 @@ COMMENT ON COLUMN oms.product.updated_ts IS 'Last modification date in the sourc
 
 /****************************************************
 * Script name          : Automatic script
-* Script date          : 27-10-2026 16:40:59
-* Database type        : PostgreSQL
-* Table name           : sales_order
-* Request number       : OLTP1
-****************************************************/
-
-DROP TABLE IF EXISTS oms.sales_order;
-Create table oms.sales_order
-(
-order_id integer not null,
-order_cd varchar(20),
-customer_id integer,
-created_ts timestamp,
-updated_ts timestamp,
-CONSTRAINT sales_order_PK PRIMARY KEY (order_id)
-);
-COMMENT ON COLUMN oms.sales_order.order_id IS 'Integer primary key, derived from the source code.';
-COMMENT ON COLUMN oms.sales_order.order_cd IS 'Source code kept to trace rejects. Format CMD- + day number (5 digits) + rank within the day (5 digits).';
-COMMENT ON COLUMN oms.sales_order.customer_id IS 'References customer.customer_id.';
-COMMENT ON COLUMN oms.sales_order.created_ts IS 'Creation date in the source system. ';
-COMMENT ON COLUMN oms.sales_order.updated_ts IS 'Last modification date in the source system. Basis of the delta to RAW.';
-
-
-/****************************************************
-* Script name          : Automatic script
-* Script date          : 27-10-2026 16:41:00
-* Database type        : PostgreSQL
-* Table name           : sales_order
-* Request number       : OLTP1
-****************************************************/
-
-DROP TABLE IF EXISTS oms.sales_order;
-Create table oms.sales_order
-(
-order_id integer not null,
-order_cd varchar(20),
-customer_id integer,
-created_ts timestamp,
-updated_ts timestamp,
-CONSTRAINT sales_order_PK PRIMARY KEY (order_id)
-);
-COMMENT ON COLUMN oms.sales_order.order_id IS 'Integer primary key, derived from the source code.';
-COMMENT ON COLUMN oms.sales_order.order_cd IS 'Source code kept to trace rejects. Format CMD- + day number (5 digits) + rank within the day (5 digits).';
-COMMENT ON COLUMN oms.sales_order.customer_id IS 'References customer.customer_id.';
-COMMENT ON COLUMN oms.sales_order.created_ts IS 'Creation date in the source system. ';
-COMMENT ON COLUMN oms.sales_order.updated_ts IS 'Last modification date in the source system. Basis of the delta to RAW.';
-
-
-/****************************************************
-* Script name          : Automatic script
-* Script date          : 27-10-2026 16:41:01
-* Database type        : PostgreSQL
-* Table name           : order_line
-* Request number       : OLTP1
-****************************************************/
-
-DROP TABLE IF EXISTS oms.order_line;
-Create table oms.order_line
-(
-order_line_id bigint not null,
-line_cd varchar(20),
-order_id integer,
-product_id integer not null,
-quantity_num integer,
-unit_price_amt numeric(10,2),
-created_ts timestamp,
-updated_ts timestamp,
-deleted_ts timestamp,
-CONSTRAINT order_line_PK PRIMARY KEY (order_line_id,product_id)
-);
-COMMENT ON COLUMN oms.order_line.order_line_id IS 'Integer primary key, derived from the source code.';
-COMMENT ON COLUMN oms.order_line.line_cd IS 'Source code kept to trace rejects. Format LIG- + 10 digits of the order + line rank (2 digits).';
-COMMENT ON COLUMN oms.order_line.order_id IS 'References sales_order.order_id.';
-COMMENT ON COLUMN oms.order_line.product_id IS 'References product.product_id.';
-COMMENT ON COLUMN oms.order_line.quantity_num IS 'Greater than or equal to 1.';
-COMMENT ON COLUMN oms.order_line.unit_price_amt IS 'Price at order time (copy, no computation).';
-COMMENT ON COLUMN oms.order_line.created_ts IS 'Line creation date in the source system.';
-COMMENT ON COLUMN oms.order_line.updated_ts IS 'Last modification date in the source system. Basis of the delta to RAW.';
-COMMENT ON COLUMN oms.order_line.deleted_ts IS 'Logical deletion date. NULL = active row. Never a physical DELETE.';
-
-
-/****************************************************
-* Script name          : Automatic script
-* Script date          : 27-10-2026 16:41:02
+* Script date          : 30-10-2026 08:01:07
 * Database type        : PostgreSQL
 * Table name           : outbox
-* Request number       : OLTP1
+* Request number       : OLTP2
 ****************************************************/
 
 DROP TABLE IF EXISTS oms.outbox;
 Create table oms.outbox
 (
-outbox_id bigint not null,
+outbox_id bigint not null GENERATED BY DEFAULT AS IDENTITY,
 event_id bigint,
-event_cd varchar(20),
+event_cd varchar(20) not null,
 delivery_num integer,
 order_id integer not null,
 customer_id integer not null,
-status_cd varchar(20),
+status_cd varchar(20) not null,
 event_ts timestamp,
 CONSTRAINT outbox_PK PRIMARY KEY (outbox_id,order_id,customer_id)
 );
+CREATE UNIQUE INDEX outbox_UDX ON oms.outbox (event_cd,status_cd);
 COMMENT ON COLUMN oms.outbox.outbox_id IS 'Technical key of the outbox. Several rows may share one event_cd (simulated duplicate). Insert-only table.';
 COMMENT ON COLUMN oms.outbox.event_id IS 'Integer identifier of the transition, derived from the source code. Same for both deliveries of a duplicate.';
 COMMENT ON COLUMN oms.outbox.event_cd IS 'Source code kept to trace rejects. Format EVT- + 10 digits of the order + status code (1 created, 2 paid, 3 shipped, 4 delivered, 5 cancelled).';
@@ -174,10 +92,10 @@ COMMENT ON COLUMN oms.outbox.event_ts IS 'Simulated transition date. Used for st
 
 /****************************************************
 * Script name          : Automatic script
-* Script date          : 27-10-2026 16:41:03
+* Script date          : 30-10-2026 08:01:08
 * Database type        : PostgreSQL
 * Table name           : publish_checkpoint
-* Request number       : OLTP1
+* Request number       : OLTP2
 ****************************************************/
 
 DROP TABLE IF EXISTS ops.publish_checkpoint;
@@ -189,3 +107,102 @@ CONSTRAINT publish_checkpoint_PK PRIMARY KEY (last_outbox_id)
 );
 COMMENT ON COLUMN ops.publish_checkpoint.last_outbox_id IS 'publish_checkpoint';
 COMMENT ON COLUMN ops.publish_checkpoint.tec_load_ts IS 'publish_checkpoint';
+
+
+/****************************************************
+* Script name          : Automatic script
+* Script date          : 30-10-2026 08:01:09
+* Database type        : PostgreSQL
+* Table name           : carrier
+* Request number       : OLTP1
+****************************************************/
+
+DROP TABLE IF EXISTS oms.carrier;
+Create table oms.carrier
+(
+carrier_id integer not null,
+carrier_cd varchar(20) not null,
+carrier_name varchar(50),
+service_cd varchar(20),
+promised_days_num integer,
+is_active boolean,
+created_ts timestamp,
+updated_ts timestamp,
+CONSTRAINT carrier_PK PRIMARY KEY (carrier_id)
+);
+COMMENT ON COLUMN oms.carrier.carrier_id IS 'Integer primary key, derived from the source code.';
+COMMENT ON COLUMN oms.carrier.carrier_cd IS 'Carrier code kept to trace rejects. Format TRP- + 3 digits.';
+COMMENT ON COLUMN oms.carrier.carrier_name IS 'Invented name, unrelated to any real carrier.';
+COMMENT ON COLUMN oms.carrier.service_cd IS 'Service type: express, standard, relay, international.';
+COMMENT ON COLUMN oms.carrier.promised_days_num IS 'Delivery time promised to the customer, in days, from creation to delivery.';
+COMMENT ON COLUMN oms.carrier.is_active IS 'Allows removing a carrier without deleting it.';
+COMMENT ON COLUMN oms.carrier.created_ts IS 'Creation date in the source system.';
+COMMENT ON COLUMN oms.carrier.updated_ts IS 'Last modification date in the source system. Basis of the delta to RAW.';
+
+
+/****************************************************
+* Script name          : Automatic script
+* Script date          : 30-10-2026 08:01:10
+* Database type        : PostgreSQL
+* Table name           : sales_order
+* Request number       : OLTP1
+****************************************************/
+
+DROP TABLE IF EXISTS oms.sales_order;
+Create table oms.sales_order
+(
+order_id integer not null,
+order_cd varchar(20) not null,
+customer_id integer,
+carrier_id integer not null,
+created_ts timestamp,
+updated_ts timestamp,
+returned_ts timestamp,
+CONSTRAINT sales_order_PK PRIMARY KEY (order_id),
+CONSTRAINT sales_order_customer_id_FK FOREIGN KEY (customer_id) REFERENCES oms.customer (customer_id),
+CONSTRAINT sales_order_carrier_id_FK FOREIGN KEY (carrier_id) REFERENCES oms.carrier (carrier_id)
+);
+COMMENT ON COLUMN oms.sales_order.order_id IS 'Integer primary key, derived from the source code.';
+COMMENT ON COLUMN oms.sales_order.order_cd IS 'Source code kept to trace rejects. Format CMD- + day number (5 digits) + rank within the day (5 digits).';
+COMMENT ON COLUMN oms.sales_order.customer_id IS 'References customer.customer_id.';
+COMMENT ON COLUMN oms.sales_order.carrier_id IS 'Carrier chosen when the order is created';
+COMMENT ON COLUMN oms.sales_order.created_ts IS 'Creation date in the source system. ';
+COMMENT ON COLUMN oms.sales_order.updated_ts IS 'Last modification date in the source system. Basis of the delta to RAW.';
+COMMENT ON COLUMN oms.sales_order.returned_ts IS 'Line return date, 1 to 14 days after delivery. NULL = line not returned. The line stays active in the system.';
+
+
+/****************************************************
+* Script name          : Automatic script
+* Script date          : 30-10-2026 08:01:10
+* Database type        : PostgreSQL
+* Table name           : order_line
+* Request number       : OLTP1
+****************************************************/
+
+DROP TABLE IF EXISTS oms.order_line;
+Create table oms.order_line
+(
+order_line_id bigint not null,
+line_cd varchar(20) not null,
+order_id integer not null,
+product_id integer not null,
+quantity_num integer,
+unit_price_amt numeric(10,2),
+vat_rate_num numeric(5,2),
+created_ts timestamp,
+updated_ts timestamp,
+deleted_ts timestamp,
+CONSTRAINT order_line_PK PRIMARY KEY (order_line_id),
+CONSTRAINT order_line_order_id_FK FOREIGN KEY (order_id) REFERENCES oms.sales_order (order_id),
+CONSTRAINT order_line_product_id_FK FOREIGN KEY (product_id) REFERENCES oms.product (product_id)
+);
+COMMENT ON COLUMN oms.order_line.order_line_id IS 'Integer primary key, derived from the source code.';
+COMMENT ON COLUMN oms.order_line.line_cd IS 'Source code kept to trace rejects. Format LIG- + 10 digits of the order + line rank (2 digits).';
+COMMENT ON COLUMN oms.order_line.order_id IS 'References sales_order.order_id.';
+COMMENT ON COLUMN oms.order_line.product_id IS 'References product.product_id.';
+COMMENT ON COLUMN oms.order_line.quantity_num IS 'Greater than or equal to 1.';
+COMMENT ON COLUMN oms.order_line.unit_price_amt IS 'Price at order time (copy, no computation).';
+COMMENT ON COLUMN oms.order_line.vat_rate_num IS 'Applied VAT rate, in percent: the customer''s country rate ';
+COMMENT ON COLUMN oms.order_line.created_ts IS 'Line creation date in the source system.';
+COMMENT ON COLUMN oms.order_line.updated_ts IS 'Last modification date in the source system. Basis of the delta to RAW.';
+COMMENT ON COLUMN oms.order_line.deleted_ts IS 'Logical deletion date. NULL = active row. Never a physical DELETE.';
