@@ -17,7 +17,7 @@ import logging
 from collections.abc import Callable
 from typing import Final
 
-from etl.rop_f001_csv_erp import (
+from etl.rop_fl001_csv_erp import (
     rop_fl001_0100_csv_erp_product,
     rop_fl001_0200_csv_erp_carrier,
 )

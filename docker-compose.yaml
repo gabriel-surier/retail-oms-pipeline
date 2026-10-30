@@ -21,6 +21,179 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - default
+
+
+  # --- ETL image: NOT a long-running service. Built once (or on every ETL
+  # code change) and tagged, then instantiated on demand by the scheduler's
+  # DockerOperator. The "build-only" profile is never activated by a plain
+  # `docker compose up`, so this never starts as a standing container.
+  # Rebuild explicitly with: docker compose --profile build-only build etl-image
+
+  etl-rop:
+    build:
+      context: .
+      dockerfile: etl/Dockerfile
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION}
+    image: retail-oms-etl:latest
+    profiles: ["build-only"]
+    env_file:
+      - .env_docker
+    networks:
+      - default
+
+
+
+  airflow-init:
+    hostname: airflow-init
+    build:
+      context: .
+      dockerfile: orchestration/Dockerfile
+      args:
+        AIRFLOW_VERSION: ${AIRFLOW_VERSION}
+        AIRFLOW_PYTHON_VERSION: ${AIRFLOW_PYTHON_VERSION}
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: false
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${ROP_POSTGRES_USER}:${ROP_POSTGRES_PASSWORD}@postgres/${ROP_POSTGRES_DB}
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "${AIRFLOW_ADMIN_USER}:admin"
+      AIRFLOW__API_AUTH__JWT_SECRET: "${AIRFLOW_JWT_SECRET}"
+    # No entrypoint override: bypassing the base image's
+    # native entrypoint skips its HOME/env setup for
+    # arbitrary UIDs, breaking "airflow" imports.
+    command: ["bash", "-c", "airflow db migrate"]
+    env_file:
+      - .env_docker
+    networks:
+      - default
+
+
+  # --- Airflow API server / UI ---
+  # No docker.sock mount here: with LocalExecutor, task execution happens
+  # on the scheduler, not here. This container only serves the UI/API.
+  # No ./etl or ./src volumes either: ETL code now lives exclusively in
+  # the separate etl-image, never inside the Airflow containers.
+  #
+  # dags is mounted read-only (:ro). The container only ever needs to read
+  # DAG files to render them in the UI, never write to that path. Mounting
+  # it read-only permanently prevents the container from ever changing the
+  # ownership of files under ./orchestration/dags, which is what caused the
+  # host-side permission conflicts on that folder. Do not remove the :ro.
+  #
+  # logs stays local at ./orchestration/logs, already excluded via
+  # .gitignore, so git never touches it. Image runs as uid 50000
+  # (airflow), so ownership is fixed once by `make setup`.
+  api-server:
+    build:
+      context: .
+      dockerfile: orchestration/Dockerfile
+      args:
+        AIRFLOW_VERSION: ${AIRFLOW_VERSION}
+        AIRFLOW_PYTHON_VERSION: ${AIRFLOW_PYTHON_VERSION}
+        AIRFLOW_PORT: ${AIRFLOW_PORT}
+    container_name: api-server
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${ROP_POSTGRES_USER}:${ROP_POSTGRES_PASSWORD}@postgres/${ROP_POSTGRES_DB}
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "${AIRFLOW_ADMIN_USER}:admin"
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://api-server:${AIRFLOW_PORT}/execution/
+      AIRFLOW__API__PORT: ${AIRFLOW_PORT}
+      AIRFLOW__API_AUTH__JWT_SECRET: "${AIRFLOW_JWT_SECRET}"
+    ports:
+      - "${AIRFLOW_PORT}:${AIRFLOW_PORT}"
+    volumes:
+      - ./orchestration/dags:/opt/airflow/dags:ro
+      - ./orchestration/logs:/opt/airflow/logs
+    command: api-server
+    env_file:
+      - .env_docker
+    networks:
+      - default
+
+  # --- Airflow scheduler ---
+  # docker.sock is mounted here (Docker-outside-of-Docker): with
+  # LocalExecutor, the scheduler is the process that actually runs task
+  # instances, so it's the one that needs to launch the ETL container via
+  # DockerOperator. Still no ./etl or ./src volumes: the scheduler only
+  # invokes the etl-image by name/tag, it never imports or runs ETL code
+  # itself.
+  #
+  # See api-server above for why dags is :ro and logs stays local. This is
+  # the container that actually writes task logs, so ownership follows the
+  # same fixed uid 50000 mapping as api-server, set once by `make setup`.
+  airflow-scheduler:
+    hostname: airflow-scheduler
+    build:
+      context: .
+      dockerfile: orchestration/Dockerfile
+      args:
+        AIRFLOW_VERSION: ${AIRFLOW_VERSION}
+        AIRFLOW_PYTHON_VERSION: ${AIRFLOW_PYTHON_VERSION}
+    container_name: airflow-scheduler
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${ROP_POSTGRES_USER}:${ROP_POSTGRES_PASSWORD}@postgres/${ROP_POSTGRES_DB}
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://api-server:${AIRFLOW_PORT}/execution/
+      AIRFLOW__API_AUTH__JWT_SECRET: "${AIRFLOW_JWT_SECRET}"
+    group_add:
+      - "${DOCKER_GID}"
+    volumes:
+      - ./orchestration/dags:/opt/airflow/dags:ro
+      - ./orchestration/logs:/opt/airflow/logs
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: scheduler
+    env_file:
+      - .env_docker
+    networks:
+      - default
+
+  # --- Required in Airflow 3: DAG parsing is a separate, mandatory component,
+  # no longer handled by the scheduler itself.
+  # Only parses the DAG .py files (which just declare DockerOperator tasks),
+  # so no ./etl, ./src, or docker.sock needed here either.
+  #
+  # See api-server above for why dags is :ro and logs stays local.
+  airflow-dag-processor:
+    hostname: airflow-dag-processor
+    build:
+      context: .
+      dockerfile: orchestration/Dockerfile
+      args:
+        AIRFLOW_VERSION: ${AIRFLOW_VERSION}
+        AIRFLOW_PYTHON_VERSION: ${AIRFLOW_PYTHON_VERSION}
+    container_name: airflow-dag-processor
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${ROP_POSTGRES_USER}:${ROP_POSTGRES_PASSWORD}@postgres/${ROP_POSTGRES_DB}
+      AIRFLOW__API_AUTH__JWT_SECRET: "${AIRFLOW_JWT_SECRET}"
+    volumes:
+      - ./orchestration/dags:/opt/airflow/dags:ro
+      - ./orchestration/logs:/opt/airflow/logs
+    command: dag-processor
+    env_file:
+      - .env_docker
+    networks:
+      - default
+
 
 volumes:
   pgdata:
+
+networks:
+  default:
+    name: airflow-net
+    external: true

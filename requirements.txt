@@ -132,3 +132,4 @@ urllib3==2.8.0
 websockets==17.3
 yarl==1.25.1
 zstandard==0.25.0
+apache-airflow-providers-docker==3.14.0

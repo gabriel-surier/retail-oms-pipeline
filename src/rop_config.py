@@ -9,7 +9,6 @@ import logging
 from collections.abc import Mapping
 from datetime import date
 from pathlib import Path
-from typing import Final
 
 import pandas as pd
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -29,6 +28,9 @@ class Settings(BaseSettings):
     project_root: Path = Path(__file__).resolve().parent.parent
     model_config = SettingsConfigDict(env_file=project_root / ".env")
 
+    # --- Python config ---
+    python_version: str
+    airflow_python_version: str
     # --- referential csv --
 
     rop_products_csv_path: Path = project_root / "data" / "products.csv"
@@ -44,6 +46,7 @@ class Settings(BaseSettings):
 
     # --- PostgreSQL config ---
 
+    rop_postgres_host: str
     rop_postgres_user: str
     rop_postgres_password: str
     rop_postgres_db: str
@@ -56,11 +59,17 @@ class Settings(BaseSettings):
     # --- Time config --
     rop_timezone: str
 
+    # --- Airflow config --
+    airflow_version: str
+    airflow_port: int
+    airflow_user: str
+    airflow_admin_user: str
+    airflow_admin_email: str
+    airflow_jwt_secret: str
+    airflow_uid: int
+
 
 logger = logging.getLogger(__name__)
-
-# ASSUMPTION: Settings has no host field, so PostgreSQL is reached on localhost.
-POSTGRES_HOST: Final[str] = "localhost"
 
 
 class IngestionError(Exception):
@@ -80,7 +89,7 @@ def build_engine(settings: Settings) -> Engine:
         drivername="postgresql+psycopg",
         username=settings.rop_postgres_user,
         password=settings.rop_postgres_password,
-        host=POSTGRES_HOST,
+        host=settings.rop_postgres_host,
         port=settings.rop_postgres_port,
         database=settings.rop_postgres_db,
     )

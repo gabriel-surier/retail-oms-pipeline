@@ -1,3 +1,8 @@
+# @File    : pyproject.toml
+# @Time    : 2026-10-28
+# @Author  : Gabriel SURIER
+# @Purpose : Project configuration for black, mypy, pylint and internal packages.
+
 [tool.black]
 line-length = 88
 target-version = ["py312"]
