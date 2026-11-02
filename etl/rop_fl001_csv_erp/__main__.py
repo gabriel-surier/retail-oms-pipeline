@@ -5,12 +5,10 @@
 @Purpose :   Run the ERP ingestion workflows in order: products (0100) then carriers (0200).
 
 @Description :
-
 The workflows are independent and each one stays runnable alone, as a script or
 through its own main() function. A failing workflow always ends in an IngestionError.
 The flag --continue-on-error only decides whether the next workflows still run first.
 Usage from the project root: python -m etl [--continue-on-error]
-
 """
 
 import logging
@@ -21,7 +19,9 @@ from etl.rop_fl001_csv_erp import (
     rop_fl001_0100_csv_erp_product,
     rop_fl001_0200_csv_erp_carrier,
 )
-from src.rop_config import IngestionError, Settings
+from shared.rop_common.rop_errors import IngestionError
+from shared.rop_common.rop_logging import configure_logging
+from shared.rop_common.rop_settings import WorkflowSettings
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +48,7 @@ def main(stop_on_error: bool = True) -> None:
     Raises:
         IngestionError: If at least one workflow failed.
     """
+    configure_logging()
     failed: list[str] = []
     for name, workflow in WORKFLOWS:
         if workflow() == 0:
@@ -61,4 +62,4 @@ def main(stop_on_error: bool = True) -> None:
 
 
 if __name__ == "__main__":
-    main(stop_on_error=Settings().rop_stop_on_error)
+    main(stop_on_error=WorkflowSettings().rop_stop_on_error)

@@ -24,9 +24,7 @@ ETL_IMAGE = "retail-oms-etl:latest"
 ETL_NETWORK = "airflow-net"
 ETL_COMMAND = "python -m etl.rop_fl001_csv_erp"
 
-# Key -> default. Resolution order: Airflow Variable, then .env, then default
-# ROP_STOP_ON_ERROR: true stops at the first failing workflow, false runs the
-# next ones then fails the task at the end.
+
 # ASSUMPTION: defaults of the oms settings are guesses, align them with your .env.
 VARIABLE_KEYS = {
     "ROP_STOP_ON_ERROR": "true",

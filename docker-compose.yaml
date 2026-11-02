@@ -76,7 +76,7 @@ services:
   # --- Airflow API server / UI ---
   # No docker.sock mount here: with LocalExecutor, task execution happens
   # on the scheduler, not here. This container only serves the UI/API.
-  # No ./etl or ./src volumes either: ETL code now lives exclusively in
+  # No ./etl or ./shared volumes either: ETL code now lives exclusively in
   # the separate etl-image, never inside the Airflow containers.
   #
   # dags is mounted read-only (:ro). The container only ever needs to read
@@ -122,7 +122,7 @@ services:
   # docker.sock is mounted here (Docker-outside-of-Docker): with
   # LocalExecutor, the scheduler is the process that actually runs task
   # instances, so it's the one that needs to launch the ETL container via
-  # DockerOperator. Still no ./etl or ./src volumes: the scheduler only
+  # DockerOperator. Still no ./etl or ./shared volumes: the scheduler only
   # invokes the etl-image by name/tag, it never imports or runs ETL code
   # itself.
   #
@@ -161,7 +161,7 @@ services:
   # --- Required in Airflow 3: DAG parsing is a separate, mandatory component,
   # no longer handled by the scheduler itself.
   # Only parses the DAG .py files (which just declare DockerOperator tasks),
-  # so no ./etl, ./src, or docker.sock needed here either.
+  # so no ./etl, ./shared, or docker.sock needed here either.
   #
   # See api-server above for why dags is :ro and logs stays local.
   airflow-dag-processor:

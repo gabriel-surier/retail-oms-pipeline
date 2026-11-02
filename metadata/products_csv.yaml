@@ -1,0 +1,22 @@
+# @File    :   products_csv.yaml
+# @Time    :   2026-11-02
+# @Author  :   Gabriel SURIER
+# @Purpose :   Describes the ERP products CSV file and its mapping to oms.product
+
+name: products_csv
+type: delimited_file
+table: oms.product # target table, types and primary key come from its DDL
+read_options:
+  delimiter: ","
+  encoding: utf-8
+  text_enclosure: '"'
+  header: true
+mapping: # in file order, source = header name
+  - {source: product_cd, target: product_cd}
+  - {source: category_cd, target: category_cd}
+  - {source: brand_name, target: brand_name}
+  - {source: product_name, target: product_name}
+  - {source: unit_price_amt, target: unit_price_amt}
+  - {source: is_active, target: is_active}
+derived: # integer target computed from a mapped source: PRD-001 becomes 1
+  - {source: product_cd, target: product_id, pattern: '^PRD-(\d+)$'}

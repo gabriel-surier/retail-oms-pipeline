@@ -1,0 +1,21 @@
+# @File    :   carriers_csv.yaml
+# @Time    :   2026-11-02
+# @Author  :   Gabriel SURIER
+# @Purpose :   Describes the ERP carriers CSV file and its mapping to oms.carrier
+
+name: carriers_csv
+type: delimited_file
+table: oms.carrier # target table, types and primary key come from its DDL
+read_options:
+  delimiter: ","
+  encoding: utf-8
+  text_enclosure: '"'
+  header: true
+mapping: # in file order, source = header name
+  - {source: carrier_cd, target: carrier_cd}
+  - {source: carrier_name, target: carrier_name}
+  - {source: service_cd, target: service_cd}
+  - {source: promised_days_num, target: promised_days_num}
+  - {source: is_active, target: is_active}
+derived: # integer target computed from a mapped source: TRP-001 becomes 1
+  - {source: carrier_cd, target: carrier_id, pattern: '^TRP-(\d+)$'}
