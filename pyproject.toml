@@ -29,6 +29,13 @@ ignore_missing_imports = true
 [tool.pylint.MAIN]
 ignore = ["venv", "sandbox"]
 ignore-patterns = ["^\\.venv$"]
+load-plugins = ["pylint.extensions.docparams"]
+
+[tool.pylint.parameter_documentation]
+accept-no-param-doc = false
+accept-no-raise-doc = false
+accept-no-return-doc = false
+accept-no-yields-doc = false
 
 [tool.pylint.typecheck]
 ignored-modules = ["airflow.providers"]
@@ -53,4 +60,4 @@ requires-python = ">=3.12"
 #setup custom for current repository
 
 [tool.setuptools]
-packages = ["src"]
+packages = ["shared"]
