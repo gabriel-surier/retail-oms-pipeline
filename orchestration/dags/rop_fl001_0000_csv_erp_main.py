@@ -33,10 +33,12 @@ VARIABLE_KEYS = {
     "ROP_INIT_DATE": "2026-01-01",
     "ROP_REPLAY_SPEED": "1",
     "ROP_SEED": "42",
+    "ROP_TIMEZONE": "Europe/Paris",
     "ROP_POSTGRES_USER": "",
     "ROP_POSTGRES_PASSWORD": "",
     "ROP_POSTGRES_DB": "",
     "ROP_POSTGRES_PORT": "",
+    "ROP_POSTGRES_DRIVER": "postgresql+psycopg",
 }
 
 # Every key of VARIABLE_KEYS becomes a templated container variable

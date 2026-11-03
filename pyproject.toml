@@ -57,6 +57,10 @@ version = "0.1.0"
 description = "End-to-end retail OMS pipeline"
 requires-python = ">=3.12"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
 #setup custom for current repository
 
 [tool.setuptools]

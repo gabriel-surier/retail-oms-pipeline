@@ -19,4 +19,4 @@ mapping: # in file order, source = header name
   - {source: unit_price_amt, target: unit_price_amt}
   - {source: is_active, target: is_active}
 derived: # integer target computed from a mapped source: PRD-001 becomes 1
-  - {source: product_cd, target: product_id, pattern: '^PRD-(\d+)$'}
+  - {source: product_cd, target: product_id, pattern: '^PRD-(\d{3})$'}

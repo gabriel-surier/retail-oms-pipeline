@@ -5,6 +5,10 @@ on:
   pull_request:
     branches: [ "main", "develop" ]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
 # ============================================
 # Job 1 : Format- black --check --verbose
@@ -60,5 +64,64 @@ jobs:
             mypy --strict .
 
 # ============================================
-# Job 4 :  Unit testing
+# Job 4 : Unit testing - pytest
 # ============================================
+    unit-tests:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v7
+        - name: Set up Python 3.12
+          uses: actions/setup-python@v7
+          with:
+            python-version: "3.12"
+            cache: "pip"
+        - run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+        - run: |
+            pytest tests/unit
+
+# ============================================
+# Job 5 : Integration testing - pytest on PostgreSQL
+# ============================================
+    integration-tests:
+      runs-on: ubuntu-latest
+      services:
+        postgres:
+          image: postgres:16
+          env:
+            POSTGRES_USER: rop_ci
+            POSTGRES_PASSWORD: rop_ci
+            POSTGRES_DB: rop_ci
+          ports:
+            - 5432:5432
+          options: >-
+            --health-cmd "pg_isready -U rop_ci"
+            --health-interval 5s
+            --health-timeout 5s
+            --health-retries 10
+      env:
+        # Throwaway credentials of the CI service container, not a real secret.
+        ROP_POSTGRES_USER: rop_ci
+        ROP_POSTGRES_PASSWORD: rop_ci
+        ROP_POSTGRES_DB: rop_ci
+        ROP_POSTGRES_PORT: "5432"
+        ROP_POSTGRES_DRIVER: postgresql+psycopg
+        PGPASSWORD: rop_ci
+      steps:
+        - uses: actions/checkout@v7
+        - name: Set up Python 3.12
+          uses: actions/setup-python@v7
+          with:
+            python-version: "3.12"
+            cache: "pip"
+        - run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+        - name: Create schemas and tables
+          run: |
+            for script in database/init/*.sql; do
+              psql -h localhost -U rop_ci -d rop_ci -v ON_ERROR_STOP=1 -f "$script"
+            done
+        - run: |
+            pytest tests/integration

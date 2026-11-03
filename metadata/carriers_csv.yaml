@@ -18,4 +18,4 @@ mapping: # in file order, source = header name
   - {source: promised_days_num, target: promised_days_num}
   - {source: is_active, target: is_active}
 derived: # integer target computed from a mapped source: TRP-001 becomes 1
-  - {source: carrier_cd, target: carrier_id, pattern: '^TRP-(\d+)$'}
+  - {source: carrier_cd, target: carrier_id, pattern: '^TRP-(\d{3})$'}

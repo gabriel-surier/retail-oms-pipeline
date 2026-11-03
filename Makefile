@@ -1,11 +1,15 @@
 .PHONY: setup env dirs perms init build-etl up up-local network down logs ps clean \
     check-docker-gid print-docker-gid password \
-    deploy reload-streamlit ensure-buckets rebuild up
+    deploy reload-streamlit ensure-buckets rebuild up \
+    test test-unit test-integration
 
 
 # Default env files, override if needed
 ENV_FILE ?= .env
 ENV_DOCKER_FILE ?= .env_docker
+# Python of the project virtualenv, so make never falls back on the system pytest.
+PYTHON ?= venv/bin/python
+
 
 # DOCKER_GID computed from the socket. := (not =) avoids re-expanding a CLI override as $(shell ...).
 DOCKER_GID := $(shell stat -c '%g' /var/run/docker.sock)
@@ -51,6 +55,16 @@ build-airflow:
 build-etl:
 	docker compose --profile build-only build etl-rop
 
+# --- Execute all unit tests with pytest ---
+test-unit:
+	$(PYTHON) -m pytest $(CURDIR)/tests/unit
+# --- Execute all integration tests with pytest ---
+test-integration:
+	$(PYTHON) -m pytest $(CURDIR)/tests/integration
+
+# --- Execute all tests with pytest ---
+
+test: test-unit test-integration
 
 # --- Print the auto-generated Airflow admin password. Retries: api-server may take a few seconds ---
 password:
