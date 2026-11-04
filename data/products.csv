@@ -1,0 +1,31 @@
+product_cd,category_cd,brand_name,product_name,unit_price_amt,is_active
+PRD-001,face_care,Lumora,Hydra Gel Cream,24.90,true
+PRD-002,face_care,Lumora,Radiance Serum,39.00,true
+PRD-003,face_care,Verdane,Gentle Foam Cleanser,14.50,true
+PRD-004,face_care,Verdane,Night Repair Balm,32.00,true
+PRD-005,face_care,Oleia,Calming Face Oil,29.90,true
+PRD-006,face_care,Oleia,Daily Mineral Sunscreen,18.50,true
+PRD-007,body_care,Sunnara,Honey Body Lotion,15.90,true
+PRD-008,body_care,Sunnara,Shea Body Butter,21.00,true
+PRD-009,body_care,Mosswell,Fresh Shower Gel,10.90,true
+PRD-010,body_care,Mosswell,Exfoliating Salt Scrub,19.50,true
+PRD-011,body_care,Tidebloom,Seaweed Body Wrap,26.00,true
+PRD-012,body_care,Tidebloom,Soothing Hand Cream,12.50,true
+PRD-013,fragrance,Noctis,Amber Night Eau de Parfum,58.00,true
+PRD-014,fragrance,Noctis,Cedar Mist Eau de Toilette,45.00,true
+PRD-015,fragrance,Ambrelle,Orange Blossom Eau de Parfum,52.00,true
+PRD-016,fragrance,Ambrelle,Soft Musk Body Mist,24.00,true
+PRD-017,fragrance,Cendre,Smoked Vanilla Candle,34.00,true
+PRD-018,fragrance,Cendre,Linen Room Spray,22.50,true
+PRD-019,makeup,Roselune,Velvet Matte Lipstick,19.90,true
+PRD-020,makeup,Roselune,Cheek Glow Blush,23.50,true
+PRD-021,makeup,Pigmora,Precision Eyeliner,13.90,true
+PRD-022,makeup,Pigmora,Volume Mascara,17.90,true
+PRD-023,makeup,Velvane,Skin Tint Foundation,36.00,true
+PRD-024,makeup,Velvane,Eyeshadow Palette,44.00,true
+PRD-025,wellness,Serenyl,Lavender Pillow Mist,16.50,true
+PRD-026,wellness,Serenyl,Herbal Sleep Tea,11.90,true
+PRD-027,wellness,Hushleaf,Magnesium Bath Salts,27.00,true
+PRD-028,wellness,Hushleaf,Aroma Diffuser,55.00,true
+PRD-029,wellness,Quiet Grove,Massage Oil Relax,30.00,true
+PRD-030,wellness,Quiet Grove,Yoga Mat Natural,49.00,true

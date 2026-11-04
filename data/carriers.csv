@@ -1,0 +1,5 @@
+carrier_cd,carrier_name,service_cd,promised_days_num,is_active
+TRP-001,Velyo Express,express,2,TRUE
+TRP-002,Norvan Messagerie,standard,3,TRUE
+TRP-003,Siravo Colis,relay,4,TRUE
+TRP-004,Dunelia Fret,international,5,TRUE
